@@ -14,7 +14,6 @@ const todosSchema = (todo?: Partial<Omit<Todo, 'id'>>) =>
 
 describe('GoREST API - User/Todos', () => {
 
-    // actual implementation overwrites the public users everyday
     let PUBLIC_USER_ID: number;
     beforeAll(async () => { PUBLIC_USER_ID = (await sutPublicClient.get(`/users`)).body[0].id;});
 
@@ -34,7 +33,6 @@ describe('GoREST API - User/Todos', () => {
             expect([response.body]).toEqual(todosSchema({...todoData, user_id: userId}));
         });
 
-        // Read the post information
         it('should read the private user todo', async () => {
             await sutAuthClient.post(`/users/${userId}/todos`, todoData);
             const response = await sutAuthClient.get(`/users/${userId}/todos`);
