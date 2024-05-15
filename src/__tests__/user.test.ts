@@ -7,6 +7,7 @@ const sut = request(BASE_URL);
 
 describe('GoREST API - User CRUD', () => {
 
+    // actual implementation overwrites the public users everyday
     let PUBLIC_USER_ID: number;
     beforeAll(async () => { PUBLIC_USER_ID = (await sut.get(`/users`)).body[0].id;});
 

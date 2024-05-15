@@ -9,6 +9,7 @@ const postsSchema = (post?: Omit<Post, 'id'>) => expect.arrayContaining([expect.
 
 describe('GoREST API - User/Posts', () => {
 
+    // actual implementation overwrites the public users everyday
     let PUBLIC_USER_ID: number;
     beforeAll(async () => { PUBLIC_USER_ID = (await sut.get(`/users`)).body[0].id;});
 

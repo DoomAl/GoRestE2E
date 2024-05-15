@@ -11,6 +11,7 @@ const todosSchema = (todo?: Partial<Omit<Todo, 'id'>>) =>
 
 describe('GoREST API - User/Todos', () => {
 
+    // actual implementation overwrites the public users everyday
     let PUBLIC_USER_ID: number;
     beforeAll(async () => { PUBLIC_USER_ID = (await sut.get(`/users`)).body[0].id;});
 
