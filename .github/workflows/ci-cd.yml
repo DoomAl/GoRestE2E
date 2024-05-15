@@ -7,6 +7,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      BASE_URL: ${{ secrets.GO_REST_API_BASE_URL }}
+      TOKEN: ${{ secrets.GO_REST_API_TOKEN }}
 
     steps:
       - name: Checkout repository
