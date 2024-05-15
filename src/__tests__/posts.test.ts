@@ -12,7 +12,6 @@ const postsSchema = (post?: Omit<Post, 'id'>) => expect.arrayContaining([expect.
 
 describe('GoREST API - User/Posts', () => {
 
-    // actual implementation overwrites the public users everyday
     let PUBLIC_USER_ID: number;
     beforeAll(async () => { PUBLIC_USER_ID = (await sutPublicClient.get(`/users`)).body[0].id;});
 
@@ -32,7 +31,6 @@ describe('GoREST API - User/Posts', () => {
             expect([response.body]).toEqual(postsSchema({...postData, user_id: userId}));
         });
 
-        // Read the post information
         it('should read the private user posts', async () => {
             await sutAuthClient.post(`/users/${userId}/posts`, postData);
             const response = await sutAuthClient.get(`/users/${userId}/posts`);
