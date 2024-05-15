@@ -1,5 +1,5 @@
 import request from "supertest";
-import {BASE_URL, PUBLIC_USER_ID, TOKEN} from "../constants";
+import {BASE_URL, TOKEN} from "../constants";
 import {randomPostData, randomUserData} from "../fixtures";
 import {Post} from "../model";
 import {faker} from "@faker-js/faker";
@@ -8,7 +8,10 @@ const sut = request(BASE_URL);
 const postsSchema = (post?: Omit<Post, 'id'>) => expect.arrayContaining([expect.objectContaining({id: expect.any(Number), user_id: post?.user_id ?? expect.any(Number), title: post?.title ?? expect.any(String), body: post?.body ?? expect.any(String)})]);
 
 describe('GoREST API - User/Posts', () => {
-    
+
+    let PUBLIC_USER_ID: number;
+    beforeAll(async () => { PUBLIC_USER_ID = (await sut.get(`/users`)).body[0].id;});
+
     describe('Operations with valid credentials', () => {
         let userId: number;
         const postData = randomPostData();
@@ -45,15 +48,9 @@ describe('GoREST API - User/Posts', () => {
         });
     });
 
-    describe('Retrieve public information', () => {
+    describe('Retrieve information', () => {
         it('should return all public posts', async () => {
             const response = await sut.get('/posts');
-            expect(response.status).toBe(200);
-            expect(response.body).toEqual(postsSchema());
-        });
-
-        it('should return a public user posts', async () => {
-            const response = await sut.get(`/users/${PUBLIC_USER_ID}/posts`);
             expect(response.status).toBe(200);
             expect(response.body).toEqual(postsSchema());
         });

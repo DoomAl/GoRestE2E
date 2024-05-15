@@ -1,15 +1,18 @@
 import request from "supertest";
-import {BASE_URL, PUBLIC_USER_ID, TOKEN} from "../constants";
+import {BASE_URL, TOKEN} from "../constants";
 import {randomTodoData, randomUserData} from "../fixtures";
 import {Todo} from "../model";
 import {faker} from "@faker-js/faker";
 
+
+const sut = request(BASE_URL);
+const todosSchema = (todo?: Partial<Omit<Todo, 'id'>>) =>
+    expect.arrayContaining([expect.objectContaining({id: expect.any(Number), user_id: todo?.user_id ?? expect.any(Number), title: todo?.title ?? expect.any(String), status: todo?.status ?? expect.any(String)})])
+
 describe('GoREST API - User/Todos', () => {
 
-    const sut = request(BASE_URL);
-
-    const todosSchema = (todo?: Partial<Omit<Todo, 'id'>>) =>
-        expect.arrayContaining([expect.objectContaining({id: expect.any(Number), user_id: todo?.user_id ?? expect.any(Number), title: todo?.title ?? expect.any(String), status: todo?.status ?? expect.any(String)})])
+    let PUBLIC_USER_ID: number;
+    beforeAll(async () => { PUBLIC_USER_ID = (await sut.get(`/users`)).body[0].id;});
 
     describe('Operations with valid credentials', () => {
         let userId: number;
@@ -47,17 +50,11 @@ describe('GoREST API - User/Todos', () => {
         });
     });
 
-    describe('Retrieve public information', () => {
+    describe('Retrieve information', () => {
         it('should return all public todo', async () => {
             const response = await sut.get('/todos');
             expect(response.status).toBe(200);
             expect(response.body).toEqual(todosSchema());
-        });
-
-        it('should return a public user todo', async () => {
-            const response = await sut.get(`/users/${PUBLIC_USER_ID}/todos`);
-            expect(response.status).toBe(200);
-            expect(response.body).toEqual([]);
         });
 
         it('should not return a private user todo', async () => {

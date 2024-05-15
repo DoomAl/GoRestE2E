@@ -1,11 +1,14 @@
 import {CreateUserParams, User} from "../model";
 import {randomUserData} from "../fixtures";
 import request from "supertest";
-import {BASE_URL, PUBLIC_USER_ID, TOKEN} from "../constants";
+import {BASE_URL, TOKEN} from "../constants";
+
+const sut = request(BASE_URL);
 
 describe('GoREST API - User CRUD', () => {
 
-    const sut = request(BASE_URL);
+    let PUBLIC_USER_ID: number;
+    beforeAll(async () => { PUBLIC_USER_ID = (await sut.get(`/users`)).body[0].id;});
 
     describe('Operations with valid credentials', () => {
         let userId: number;
