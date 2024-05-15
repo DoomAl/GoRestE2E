@@ -1,14 +1,16 @@
 import {CreateUserParams, User} from "../model";
 import {randomUserData} from "../fixtures";
-import request from "supertest";
 import {BASE_URL, TOKEN} from "../constants";
+import { makeGoRestClient} from "../client";
 
-const sut = request(BASE_URL);
+// sut = System Under Test
+const sutPublicClient = makeGoRestClient(BASE_URL);
+const sutAuthClient = makeGoRestClient(BASE_URL, TOKEN);
 
 describe('GoREST API - User CRUD', () => {
 
     let PUBLIC_USER_ID: number;
-    beforeAll(async () => { PUBLIC_USER_ID = (await sut.get(`/users`)).body[0].id;});
+    beforeAll(async () => { PUBLIC_USER_ID = (await sutPublicClient.get(`/users`)).body[0].id;});
 
     describe('Operations with valid credentials', () => {
         let userId: number;
@@ -17,7 +19,7 @@ describe('GoREST API - User CRUD', () => {
         // Create a new user
         it('should create a new user', async () => {
 
-            const response = await sut.post('/users').set('Authorization', `Bearer ${TOKEN}`).send(userData);
+            const response = await sutAuthClient.post('/users', userData);
             expect(response.status).toBe(201);
             expect(response.body).toEqual(expect.objectContaining(userData));
             userId = response.body.id;
@@ -25,7 +27,7 @@ describe('GoREST API - User CRUD', () => {
 
         // Read the user information
         it('should read the user information', async () => {
-            const response = await sut.get(`/users/${userId}`).set('Authorization', `Bearer ${TOKEN}`);
+            const response = await sutAuthClient.get(`/users/${userId}`);
 
             expect(response.status).toBe(200);
             expect(response.body).toEqual(expect.objectContaining({...userData, id: userId}));
@@ -38,7 +40,8 @@ describe('GoREST API - User CRUD', () => {
                 status: 'inactive'
             };
 
-            const response = await sut.put(`/users/${userId}`).set('Authorization', `Bearer ${TOKEN}`).send(updatedData);
+            // const response = await sut.put(`/users/${userId}`).set('Authorization', `Bearer ${TOKEN}`).send(updatedData);
+            const response = await sutAuthClient.put(`/users/${userId}`, updatedData);
 
             expect(response.status).toBe(200);
             expect(response.body).toEqual(expect.objectContaining({...userData, ...updatedData, id: userId}));
@@ -50,7 +53,8 @@ describe('GoREST API - User CRUD', () => {
                 status: 'inactive'
             };
 
-            const response = await sut.patch(`/users/${userId}`).set('Authorization', `Bearer ${TOKEN}`).send(updatedData);
+            // const response = await sut.patch(`/users/${userId}`).set('Authorization', `Bearer ${TOKEN}`).send(updatedData);
+            const response = await sutAuthClient.patch(`/users/${userId}`, updatedData);
 
             expect(response.status).toBe(200);
             expect(response.body).toEqual(expect.objectContaining({...userData, ...updatedData, id: userId}));
@@ -58,13 +62,15 @@ describe('GoREST API - User CRUD', () => {
 
         // Delete the user
         it('should delete the user', async () => {
-            const deleteResponse = await sut.delete(`/users/${userId}`).set('Authorization', `Bearer ${TOKEN}`);
+            // const deleteResponse = await sut.delete(`/users/${userId}`).set('Authorization', `Bearer ${TOKEN}`);
+            const deleteResponse = await sutAuthClient.delete(`/users/${userId}`);
             expect(deleteResponse.status).toBe(204);
         });
 
         // // Verify the user has been deleted
         it('should return 404 for deleted user', async () => {
-            const response = await sut.get(`/users/${userId}`).set('Authorization', `Bearer ${TOKEN}`);
+            // const response = await sut.get(`/users/${userId}`).set('Authorization', `Bearer ${TOKEN}`);
+            const response = await sutAuthClient.get(`/users/${userId}`);
 
             expect(response.status).toBe(404);
         });
@@ -75,7 +81,8 @@ describe('GoREST API - User CRUD', () => {
         // Create a new user
         it("should not create a new user", async () => {
 
-            const response = await sut.post('/users').send(userData);
+            // const response = await sut.post('/users').send(userData);
+            const response = await sutPublicClient.post('/users', userData);
             expect(response.status).toBe(401);
         });
 
@@ -86,14 +93,14 @@ describe('GoREST API - User CRUD', () => {
                 status: 'inactive'
             };
 
-            const response = await sut.put(`/users/${PUBLIC_USER_ID}`).send(updatedData);
+            const response = await sutPublicClient.put(`/users/${PUBLIC_USER_ID}`, updatedData);
 
             expect(response.status).toBe(401);
         });
 
         // // Delete the user
         it('should not delete the user', async () => {
-            const deleteResponse = await sut.delete(`/users/${PUBLIC_USER_ID}`);
+            const deleteResponse = await sutPublicClient.delete(`/users/${PUBLIC_USER_ID}`);
             expect(deleteResponse.status).toBe(401);
         });
     });
@@ -101,18 +108,18 @@ describe('GoREST API - User CRUD', () => {
     describe('Retrieve public information', () => {
 
         it('should return all public users', async () => {
-            const response = await sut.get('/users');
+            const response = await sutPublicClient.get('/users');
             expect(response.status).toBe(200);
         });
 
         it('should return a public user', async () => {
-            const response = await sut.get(`/users/${PUBLIC_USER_ID}`);
+            const response = await sutPublicClient.get(`/users/${PUBLIC_USER_ID}`);
             expect(response.status).toBe(200);
         });
 
         it('should not return a private user', async () => {
-            const createUserResponse = await sut.post('/users').set('Authorization', `Bearer ${TOKEN}`).send(randomUserData());
-            const response = await sut.get(`/users/${createUserResponse.body.id}`);
+            const createUserResponse = await sutAuthClient.post('/users',randomUserData());
+            const response = await sutPublicClient.get(`/users/${createUserResponse.body.id}`);
             expect(response.status).toBe(404);
         });
     });
@@ -125,7 +132,8 @@ describe('GoREST API - User CRUD', () => {
             status: 'active'
         };
         beforeAll(async () => {
-            await sut.post('/users').set('Authorization', `Bearer ${TOKEN}`).send(user);
+            // await sut.post('/users').set('Authorization', `Bearer ${TOKEN}`).send(user);
+            await sutAuthClient.post('/users', user);
         });
 
         it.each([
@@ -143,8 +151,9 @@ describe('GoREST API - User CRUD', () => {
                 }]],
             [{...user, email: 'a@.com'}, [{field: 'email', message: 'is invalid'}]],
             [{...user}, [{field: 'email', message: 'has already been taken'}]]
-        ])('user fields error message', async (a, expected) => {
-            const response = await sut.post('/users').set('Authorization', `Bearer ${TOKEN}`).send(a);
+        ])('user fields error message', async (userData, expected) => {
+            // const response = await sut.post('/users').set('Authorization', `Bearer ${TOKEN}`).send(a);
+            const response = await sutAuthClient.post('/users', userData);
             expect(response.status).toBe(422);
             expect(response.body).toEqual(expect.arrayContaining(expected));
         });
