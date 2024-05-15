@@ -1,0 +1,30 @@
+# Node
+node_modules
+npm-debug.log
+package-lock.json
+.env
+
+# TypeScript
+*.map
+tsconfig.tsbuildinfo
+.build
+
+# JetBrains
+.idea
+.project
+.settings
+.idea/*
+*.iml
+
+# Test
+test/results/
+coverage
+test-report.xml
+
+
+# Logs
+*.log
+npm-debug.log*
+
+# jest
+*lcov.info
