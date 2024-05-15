@@ -9,6 +9,7 @@ const sutAuthClient = makeGoRestClient(BASE_URL, TOKEN);
 
 describe('GoREST API - User CRUD', () => {
 
+    // actual implementation overwrites the public users everyday
     let PUBLIC_USER_ID: number;
     beforeAll(async () => { PUBLIC_USER_ID = (await sutPublicClient.get(`/users`)).body[0].id;});
 
